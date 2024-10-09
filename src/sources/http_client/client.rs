@@ -5,6 +5,8 @@ use bytes::{Bytes, BytesMut};
 use chrono::Utc;
 use futures_util::FutureExt;
 use http::{response::Parts, Uri};
+use ipnet::IpNet;
+use itertools::Itertools;
 use serde_with::serde_as;
 use snafu::ResultExt;
 use std::{collections::HashMap, time::Duration};
@@ -41,15 +43,28 @@ use vector_lib::{
 #[serde_as]
 #[configurable_component(source(
     "http_client",
-    "Pull observability data from an HTTP server at a configured interval."
+    "Pull observability data from HTTP server(s) at a configured interval."
 ))]
 #[derive(Clone, Debug)]
 pub struct HttpClientConfig {
-    /// The HTTP endpoint to collect events from.
+    /// The HTTP endpoint(s) to collect events from.
     ///
-    /// The full path must be specified.
-    #[configurable(metadata(docs::examples = "http://127.0.0.1:9898/logs"))]
-    pub endpoint: String,
+    /// CIDR notation
+    /// Port and Path is defined separately
+    #[configurable()]
+    pub endpoints: Vec<String>,
+
+    /// Ports to scrape for each endpoint
+    #[configurable()]
+    #[serde(default)]
+    pub ports: Vec<u16>,
+
+    /// Path for URL to be applied to each endpoint + port combination
+    ///
+    /// Do not include the root `/`
+    /// Do include query string parameters
+    #[configurable()]
+    pub paths: Vec<String>,
 
     /// The interval between scrapes. Requests are run concurrently so if a scrape takes longer
     /// than the interval a new scrape will be started. This can take extra resources, set the timeout
@@ -153,7 +168,9 @@ fn headers_examples() -> HashMap<String, Vec<String>> {
 impl Default for HttpClientConfig {
     fn default() -> Self {
         Self {
-            endpoint: "http://localhost:9898/logs".to_string(),
+            endpoints: vec!["127.0.0.1/32".to_string()],
+            ports: vec![80],
+            paths: vec![],
             query: HashMap::new(),
             interval: default_interval(),
             timeout: default_timeout(),
@@ -174,14 +191,24 @@ impl_generate_config_from_default!(HttpClientConfig);
 #[typetag::serde(name = "http_client")]
 impl SourceConfig for HttpClientConfig {
     async fn build(&self, cx: SourceContext) -> Result<sources::Source> {
+        // validate endpoints as CIDR or IP glob pattern
+        let endpoints: Vec<IpNet> = self.endpoints.iter().map(|x| x.parse().expect("CIDR range not valid")).collect();
+        let endpoints: Vec<String> = endpoints
+            .iter()
+            .flat_map(IpNet::hosts)
+            .cartesian_product(self.ports.iter())
+            .cartesian_product(self.paths.iter())
+            .map(|((ip, port), path)| {
+                format!("http://{}:{}/{}", ip, port, path)
+            })
+            .collect();
+
         // build the url
-        let endpoints = [self.endpoint.clone()];
         let urls = endpoints
             .iter()
             .map(|s| s.parse::<Uri>().context(sources::UriParseSnafu))
             .map(|r| r.map(|uri| build_url(&uri, &self.query)))
             .collect::<std::result::Result<Vec<Uri>, sources::BuildError>>()?;
-
         let tls = TlsSettings::from_options(&self.tls)?;
 
         let log_namespace = cx.log_namespace(self.log_namespace);

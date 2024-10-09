@@ -44,7 +44,7 @@ impl ValidatableComponent for HttpClientConfig {
         let uri = Uri::from_static("http://127.0.0.1:9898");
 
         let config = Self {
-            endpoint: uri.to_string(),
+            ports: vec![9898],
             interval: Duration::from_secs(1),
             timeout: Duration::from_secs(1),
             decoding: DeserializerConfig::Json(Default::default()),
@@ -85,7 +85,9 @@ async fn bytes_decoding() {
     tokio::spawn(warp::serve(dummy_endpoint).run(in_addr));
 
     run_compliance(HttpClientConfig {
-        endpoint: format!("http://{}/endpoint", in_addr),
+        endpoints: vec![in_addr.ip().to_string()],
+        ports: vec![in_addr.port()],
+        paths: vec![],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -114,7 +116,9 @@ async fn json_decoding_newline_delimited() {
     wait_for_tcp(in_addr).await;
 
     run_compliance(HttpClientConfig {
-        endpoint: format!("http://{}/endpoint", in_addr),
+        endpoints: vec![in_addr.ip().to_string()],
+        ports: vec![in_addr.port()],
+        paths: vec![],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -143,7 +147,9 @@ async fn json_decoding_character_delimited() {
     wait_for_tcp(in_addr).await;
 
     run_compliance(HttpClientConfig {
-        endpoint: format!("http://{}/endpoint", in_addr),
+        endpoints: vec![in_addr.ip().to_string()],
+        ports: vec![in_addr.port()],
+        paths: vec![],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -176,7 +182,9 @@ async fn request_query_applied() {
     wait_for_tcp(in_addr).await;
 
     let events = run_compliance(HttpClientConfig {
-        endpoint: format!("http://{}/endpoint?key1=val1", in_addr),
+        endpoints: vec![in_addr.ip().to_string()],
+        ports: vec![in_addr.port()],
+        paths: vec!["endpoint?key1=val1".to_string()],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::from([
@@ -243,7 +251,9 @@ async fn headers_applied() {
     wait_for_tcp(in_addr).await;
 
     run_compliance(HttpClientConfig {
-        endpoint: format!("http://{}/endpoint", in_addr),
+        endpoints: vec![in_addr.ip().to_string()],
+        ports: vec![in_addr.port()],
+        paths: vec![],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -275,7 +285,9 @@ async fn accept_header_override() {
     wait_for_tcp(in_addr).await;
 
     run_compliance(HttpClientConfig {
-        endpoint: format!("http://{}/endpoint", in_addr),
+        endpoints: vec![in_addr.ip().to_string()],
+        ports: vec![in_addr.port()],
+        paths: vec![],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
