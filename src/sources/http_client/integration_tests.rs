@@ -51,7 +51,7 @@ pub(crate) async fn run_error(config: HttpClientConfig) {
 #[tokio::test]
 async fn invalid_endpoint() {
     run_error(HttpClientConfig {
-        endpoint: "http://nope".to_string(),
+        endpoint: vec!["http://nope".to_string()],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -70,7 +70,7 @@ async fn invalid_endpoint() {
 #[tokio::test]
 async fn collected_logs_bytes() {
     let events = run_compliance(HttpClientConfig {
-        endpoint: format!("{}/logs/bytes", dufs_address()),
+        endpoint: vec![format!("{}/logs/bytes", dufs_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -95,7 +95,7 @@ async fn collected_logs_bytes() {
 #[tokio::test]
 async fn collected_logs_json() {
     let events = run_compliance(HttpClientConfig {
-        endpoint: format!("{}/logs/json.json", dufs_address()),
+        endpoint: vec![format!("{}/logs/json.json", dufs_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -120,7 +120,7 @@ async fn collected_logs_json() {
 #[tokio::test]
 async fn collected_metrics_native_json() {
     let events = run_compliance(HttpClientConfig {
-        endpoint: format!("{}/metrics/native.json", dufs_address()),
+        endpoint: vec![format!("{}/metrics/native.json", dufs_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -150,7 +150,7 @@ async fn collected_metrics_native_json() {
 #[tokio::test]
 async fn collected_trace_native_json() {
     let events = run_compliance(HttpClientConfig {
-        endpoint: format!("{}/traces/native.json", dufs_address()),
+        endpoint: vec![format!("{}/traces/native.json", dufs_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -175,7 +175,7 @@ async fn collected_trace_native_json() {
 #[tokio::test]
 async fn unauthorized_no_auth() {
     run_error(HttpClientConfig {
-        endpoint: format!("{}/logs/json.json", dufs_auth_address()),
+        endpoint: vec![format!("{}/logs/json.json", dufs_auth_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -194,7 +194,7 @@ async fn unauthorized_no_auth() {
 #[tokio::test]
 async fn unauthorized_wrong_auth() {
     run_error(HttpClientConfig {
-        endpoint: format!("{}/logs/json.json", dufs_auth_address()),
+        endpoint: vec![format!("{}/logs/json.json", dufs_auth_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -216,7 +216,7 @@ async fn unauthorized_wrong_auth() {
 #[tokio::test]
 async fn authorized() {
     run_compliance(HttpClientConfig {
-        endpoint: format!("{}/logs/json.json", dufs_auth_address()),
+        endpoint: vec![format!("{}/logs/json.json", dufs_auth_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -238,7 +238,7 @@ async fn authorized() {
 #[tokio::test]
 async fn tls_invalid_ca() {
     run_error(HttpClientConfig {
-        endpoint: format!("{}/logs/json.json", dufs_https_address()),
+        endpoint: vec![format!("{}/logs/json.json", dufs_https_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -260,7 +260,7 @@ async fn tls_invalid_ca() {
 #[tokio::test]
 async fn tls_valid() {
     run_compliance(HttpClientConfig {
-        endpoint: format!("{}/logs/json.json", dufs_https_address()),
+        endpoint: vec![format!("{}/logs/json.json", dufs_https_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),
@@ -283,7 +283,7 @@ async fn tls_valid() {
 async fn shutdown() {
     let source_id = ComponentKey::from("http_client_shutdown");
     let source = HttpClientConfig {
-        endpoint: format!("{}/logs/json.json", dufs_address()),
+        endpoint: vec![format!("{}/logs/json.json", dufs_address())],
         interval: INTERVAL,
         timeout: TIMEOUT,
         query: HashMap::new(),

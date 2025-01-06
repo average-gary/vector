@@ -49,7 +49,7 @@ pub struct HttpClientConfig {
     ///
     /// The full path must be specified.
     #[configurable(metadata(docs::examples = "http://127.0.0.1:9898/logs"))]
-    pub endpoint: String,
+    pub endpoint: Vec<String>,
 
     /// The interval between scrapes. Requests are run concurrently so if a scrape takes longer
     /// than the interval a new scrape will be started. This can take extra resources, set the timeout
@@ -153,7 +153,7 @@ fn headers_examples() -> HashMap<String, Vec<String>> {
 impl Default for HttpClientConfig {
     fn default() -> Self {
         Self {
-            endpoint: "http://localhost:9898/logs".to_string(),
+            endpoint: vec!["http://localhost:9898/logs".to_string()],
             query: HashMap::new(),
             interval: default_interval(),
             timeout: default_timeout(),
@@ -175,7 +175,7 @@ impl_generate_config_from_default!(HttpClientConfig);
 impl SourceConfig for HttpClientConfig {
     async fn build(&self, cx: SourceContext) -> Result<sources::Source> {
         // build the url
-        let endpoints = [self.endpoint.clone()];
+        let endpoints = self.endpoint.clone();
         let urls = endpoints
             .iter()
             .map(|s| s.parse::<Uri>().context(sources::UriParseSnafu))
