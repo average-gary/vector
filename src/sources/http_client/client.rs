@@ -7,8 +7,10 @@ use futures_util::FutureExt;
 use http::{response::Parts, Uri};
 use serde_with::serde_as;
 use snafu::ResultExt;
+use vrl::path;
 use std::{collections::HashMap, time::Duration};
 use tokio_util::codec::Decoder as _;
+use vector_lib::config::LegacyKey;
 
 use crate::sources::util::http_client;
 use crate::{
@@ -299,7 +301,7 @@ impl http_client::HttpClientContext for HttpClientContext {
     }
 
     /// Enriches events with source_type, timestamp
-    fn enrich_events(&mut self, events: &mut Vec<Event>) {
+    fn enrich_events(&mut self, events: &mut Vec<Event>, url: &str) {
         let now = Utc::now();
 
         for event in events {
@@ -309,6 +311,14 @@ impl http_client::HttpClientContext for HttpClientContext {
                         log,
                         HttpClientConfig::NAME,
                         now,
+                    );
+                    debug!("log");
+                    self.log_namespace.insert_source_metadata(
+                        HttpClientConfig::NAME,
+                        log,
+                        Some(LegacyKey::InsertIfEmpty(path!("http_url"))),
+                        vrl::path!("http_url"),
+                        url,
                     );
                 }
                 Event::Metric(ref mut metric) => {

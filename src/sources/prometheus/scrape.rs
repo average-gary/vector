@@ -242,7 +242,7 @@ struct PrometheusScrapeContext {
 }
 
 impl HttpClientContext for PrometheusScrapeContext {
-    fn enrich_events(&mut self, events: &mut Vec<Event>) {
+    fn enrich_events(&mut self, events: &mut Vec<Event>, _url: &str) {
         for event in events.iter_mut() {
             let metric = event.as_mut_metric();
             if let Some(InstanceInfo {

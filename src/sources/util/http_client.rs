@@ -80,7 +80,7 @@ pub(crate) trait HttpClientContext {
     // This function can be defined to enrich events with additional HTTP
     // metadata. This function should be used rather than internal enrichment so
     // that accurate byte count metrics can be emitted.
-    fn enrich_events(&mut self, _events: &mut Vec<Event>) {}
+    fn enrich_events(&mut self, _events: &mut Vec<Event>, _url: &str) {}
 }
 
 /// Builds a url for the HTTP requests.
@@ -319,7 +319,7 @@ pub(crate) async fn call<
 
                                 // We'll enrich after receiving the events so
                                 // that the byte sizes are accurate.
-                                context.enrich_events(&mut events);
+                                context.enrich_events(&mut events, url.to_string().as_str());
 
                                 stream::iter(events)
                             })
